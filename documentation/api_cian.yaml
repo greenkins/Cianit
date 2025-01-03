@@ -1,0 +1,584 @@
+openapi: 3.0.0
+info:
+  title: Flat Management API
+  description: API для управления коллекцией объектов Flat
+  version: 1.0.0
+servers:
+  - url: /api/cian
+
+paths:
+  /flats:
+    get:
+      summary: Получить список всех квартир
+      tags:
+        - flats
+      description: Возвращает массив объектов квартир с поддержкой сортировки, фильтрации и постраничного вывода.
+      operationId: getFlats
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Количество элементов на странице
+          required: false
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          description: Поля для сортировки, например, "-name" для сортировки по убыванию.
+          required: false
+          schema:
+            type: string
+            example: -name,area
+        - name: filter
+          in: query
+          description: Условия фильтрации, например, "area>50".
+          required: false
+          schema:
+            type: string
+            example: area>50,name~Kia
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                    example: 1
+                  pageSize:
+                    type: integer
+                    example: 1
+                  currPage:
+                    type: integer
+                    example: 1
+                  flats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Flat'
+                xml:
+                  name: Response
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+    post:
+      summary: Добавить новую квартиру
+      tags:
+        - flats
+      description: Создает новый объект квартиры и возвращает его ID.
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/FlatCreateRequest'
+      responses:
+        '201':
+          description: Квартира успешно добавлена
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  id:
+                    $ref: '#/components/schemas/FlatId'
+                  creationDate:
+                    $ref: '#/components/schemas/CreationDate'
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+  /flats/{id}:
+    get:
+      summary: Получить квартиру по ID
+      tags:
+        - flats
+      description: Возвращает квартиру по её ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FlatId'
+
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Flat'
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '422':
+          description: Квартира не может быть отображена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+    put:
+      summary: Обновить квартиру по ID
+      tags:
+        - flats
+      description: Обновляет информацию о квартире по её ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FlatId'
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/FlatCreateRequest'
+      responses:
+        '200':
+          description: Квартира успешно обновлена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Flat'
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '404':
+          description: Квартира не найдена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '422':
+          description: Квартира не может быть обновлена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+    delete:
+      summary: Удалить квартиру по ID
+      tags:
+        - flats
+      description: Удаляет квартиру по её ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/FlatId'
+      responses:
+        '204':
+          description: Квартира успешно удалена
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '404':
+          description: Квартира не найдена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '422':
+          description: Квартира не может быть удалена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+  /flats/any-with-new/{new}:
+    delete:
+      summary: Удалить одну квартиру с заданным статусом "new"
+      tags:
+        - flats
+      description: Удаляет одну квартиру, статус `new` которой эквивалентен заданному значению.
+      parameters:
+        - name: new
+          in: path
+          required: true
+          schema:
+            type: boolean
+            example: true
+      responses:
+        '204':
+          description: Квартира успешно удалена
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '404':
+          description: Квартира не найдена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '422':
+          description: Квартира не может быть удалена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+  /flats/house/{houseName}:
+    delete:
+      summary: Удалить квартиры по имени дома
+      tags:
+        - flats
+      description: Удаляет все квартиры, принадлежащие дому с указанным именем.
+      parameters:
+        - name: houseName
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "Ocean View"
+      responses:
+        '204':
+          description: Квартиры успешно удалены
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '404':
+          description: Квартиры не найдены
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAnswer'
+
+  /enums/transport:
+    get:
+      summary: Получить значения перечисления Transport
+      tags:
+        - enums
+      description: Возвращает доступные значения перечисления Transport.
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enumName:
+                    type: string
+                    description: Название перечисления.
+                    example: "Transport"
+                  values:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - FEW
+                        - LITTLE
+                        - NORMAL
+                      example: "NORMAL"
+
+components:
+  schemas:
+    Flat:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFields'
+
+    FlatCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/FlatUserSetFieldsExistedRestricted'
+
+    FlatId:
+      type: integer
+      format: int32
+      minimum: 1
+      example: 1
+
+    CreationDate:
+      type: string
+      format: date-time
+      example: "2024-10-25T00:00:00Z"
+
+    NotFoundAnswer:
+      allOf:
+        - $ref: '#/components/schemas/FlatNotFoundAnswer'
+
+    FlatUserSetFields:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Однокомнатная квартира"
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        area:
+          type: number
+          format: double
+          minimum: 0
+          example: 54.5
+        numberOfRooms:
+          type: integer
+          minimum: 1
+          example: 2
+        livingSpace:
+          type: integer
+          minimum: 1
+          example: 30
+        new:
+          type: boolean
+          nullable: true
+        transport:
+          $ref: '#/components/schemas/Transport'
+        house:
+          $ref: '#/components/schemas/House'
+
+    FlatUserSetFieldsExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatUserSetFields'
+        - required:
+            - name
+            - coordinates
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    FlatAllFieldsNoId:
+      allOf:
+        - type: object
+          properties:
+            creationDate:
+              type: string
+              format: date-time
+              example: "2024-10-25T00:00:00Z"
+        - $ref: '#/components/schemas/FlatUserSetFields'
+
+    FlatAllFieldsNoIdExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFieldsNoId'
+        - required:
+            - creationDate
+            - name
+            - coordinates
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    FlatAllFields:
+      allOf:
+        - type: object
+          xml:
+            name: Flat
+          properties:
+            id:
+              type: integer
+              format: int32
+              minimum: 1
+              example: 1
+            creationDate:
+              type: string
+              format: date-time
+              example: "2024-10-25T00:00:00Z"
+        - $ref: '#/components/schemas/FlatUserSetFields'
+
+    FlatAllFieldsExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFields'
+        - required:
+            - id
+            - name
+            - coordinates
+            - creationDate
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    Coordinates:
+      type: object
+      xml:
+        name: Coordinates
+      properties:
+        x:
+          type: integer
+          example: 10
+        y:
+          type: integer
+          maximum: 256
+          example: 100
+      required:
+        - x
+        - y
+
+    House:
+      type: object
+      xml:
+        name: House
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: "Жилой дом №1"
+        year:
+          type: integer
+          minimum: 1
+          example: 1990
+        numberOfFloors:
+          type: integer
+          minimum: 1
+          nullable: true
+          example: 5
+        numberOfLifts:
+          type: integer
+          minimum: 1
+          example: 2
+
+    Transport:
+      type: string
+      enum:
+        - FEW
+        - LITTLE
+        - NORMAL
+
+    WrongPropertiesAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Некорректные данные"
+        path:
+          type: string
+          example: "/flats"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "area"
+              value:
+                type: string
+                example: "Площадь должна быть больше 0"
+
+    BadRequestAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Неверный запрос"
+        path:
+          type: string
+          example: "/flats"
+
+    FlatNotFoundAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Не найдено"
+        path:
+          type: string
+          example: "/flats/{id}"
+        details:
+          type: string
+          example: "Квартиры с таким id не существует"
+
+    ServerErrorAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Внутренняя ошибка сервера"
+        path:
+          type: string
+          example: "/flats"

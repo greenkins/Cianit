@@ -1,0 +1,409 @@
+openapi: 3.0.0
+info:
+  title: Agency Service API
+  description: API для взаимодействия с квартирными объектами и выполнения агентских задач
+  version: 1.0.0
+servers:
+  - url: /api/cian/agency
+
+paths:
+  /get-cheapest/{id1}/{id2}:
+    get:
+      summary: Получить самую дешевую квартиру из двух
+      tags:
+        - agency
+      description: Возвращает квартиру с минимальной стоимостью из двух указанных.
+      parameters:
+        - name: id1
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id2
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Flat'
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAnswer'
+        '404':
+          description: Одна из квартир не найдена
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAgencyAnswer'
+        '503':
+          description: Сервис недоступен
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAgencyAnswer'
+
+  /get-ordered-by-time-to-metro/{by-transport}/{desc}:
+    get:
+      summary: Получить отсортированный список квартир по времени до метро
+      tags:
+        - agency
+      description: Возвращает список квартир, отсортированных по времени до метро (пешком или на транспорте) в указанном порядке (возрастание или убывание).
+      parameters:
+        - name: by-transport
+          in: path
+          required: true
+          schema:
+            type: boolean
+          description: Если true, сортировать по времени на транспорте. Если false, сортировать по пешему времени.
+        - name: desc
+          in: path
+          required: true
+          schema:
+            type: boolean
+          description: Если true, сортировка будет по убыванию.
+
+      responses:
+
+        '200':
+          description: Успешная операция
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flat'
+                xml:
+                  name: Response
+        '400':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BadRequestAgencyAnswer'
+        '404':
+          description: Некорректные данные
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NotFoundAnswer'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerErrorAgencyAnswer'
+        '503':
+          description: Сервис недоступен
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ServerMalfunctionAgencyAnswer'
+
+components:
+  schemas:
+    Agency:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFields'
+
+    AgencyCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/FlatUserSetFieldsExistedRestricted'
+
+    AgencyId:
+      type: integer
+      format: int32
+      minimum: 1
+      example: 101
+
+    CreationDate:
+      type: string
+      format: date-time
+      example: "2024-10-25T00:00:00Z"
+
+
+
+    NotFoundAnswer:
+      allOf:
+        - $ref: '#/components/schemas/AgencyNotFoundAnswer'
+
+    BadRequestAnswer:
+      allOf:
+        - $ref: '#/components/schemas/BadRequestAnswer'
+
+    ServerErrorAnswer:
+      allOf:
+        - $ref: '#/components/schemas/ServerErrorAnswer'
+
+    WrongPropertiesAnswer:
+      allOf:
+        - $ref: '#/components/schemas/WrongPropertiesAnswer'
+
+    CheapestFlatResponse:
+      type: object
+      properties:
+        cheaperFlat:
+          $ref: '#/components/schemas/FlatAllFields'
+        message:
+          type: string
+          example: "Квартира с ID 1 дешевле, чем квартира с ID 2"
+
+    OrderedByTimeToMetroResponse:
+      type: object
+      properties:
+        flats:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlatAllFields'
+        transport:
+          type: string
+          example: "NORMAL"
+        descending:
+          type: boolean
+          example: false
+
+    AgencyErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Не найдено"
+        path:
+          type: string
+          example: "/agency/get-cheapest/1/2"
+        details:
+          type: string
+          example: "Квартиры с такими ID не найдены"
+
+    BadRequestAgencyAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Неверный запрос"
+        path:
+          type: string
+          example: "/agency/get-ordered-by-time-to-metro"
+
+
+
+    ServerErrorAgencyAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Внутренняя ошибка сервера"
+        path:
+          type: string
+          example: "/agency/get-ordered-by-time-to-metro"
+
+    ServerMalfunctionAgencyAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Сервер недоступен"
+        path:
+          type: string
+          example: "/agency/get-ordered-by-time-to-metro"
+
+    Flat:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFields'
+
+    FlatCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/FlatUserSetFieldsExistedRestricted'
+
+    FlatId:
+      type: integer
+      format: int32
+      minimum: 1
+      example: 1
+
+    FlatUserSetFields:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Однокомнатная квартира"
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        area:
+          type: number
+          format: double
+          minimum: 0
+          example: 54.5
+        numberOfRooms:
+          type: integer
+          minimum: 1
+          example: 2
+        livingSpace:
+          type: integer
+          minimum: 1
+          example: 30
+        new:
+          type: boolean
+          nullable: true
+        transport:
+          $ref: '#/components/schemas/Transport'
+        house:
+          $ref: '#/components/schemas/House'
+
+    FlatUserSetFieldsExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatUserSetFields'
+        - required:
+            - name
+            - coordinates
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    FlatAllFieldsNoId:
+      allOf:
+        - type: object
+          properties:
+            creationDate:
+              type: string
+              format: date-time
+              example: "2024-10-25T00:00:00Z"
+        - $ref: '#/components/schemas/FlatUserSetFields'
+
+    FlatAllFieldsNoIdExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFieldsNoId'
+        - required:
+            - creationDate
+            - name
+            - coordinates
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    FlatAllFields:
+      allOf:
+        - type: object
+          xml:
+            name: Flat
+          properties:
+            id:
+              type: integer
+              format: int32
+              minimum: 1
+              example: 1
+            creationDate:
+              type: string
+              format: date-time
+              example: "2024-10-25T00:00:00Z"
+        - $ref: '#/components/schemas/FlatUserSetFields'
+
+    FlatAllFieldsExistedRestricted:
+      allOf:
+        - $ref: '#/components/schemas/FlatAllFields'
+        - required:
+            - id
+            - name
+            - coordinates
+            - creationDate
+            - area
+            - numberOfRooms
+            - livingSpace
+            - house
+
+    Coordinates:
+      type: object
+      xml:
+        name: Coordinates
+      properties:
+        x:
+          type: integer
+          example: 10
+        y:
+          type: integer
+          maximum: 256
+          example: 100
+      required:
+        - x
+        - y
+
+    House:
+      type: object
+      xml:
+        name: House
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: "Жилой дом №1"
+        year:
+          type: integer
+          minimum: 1
+          example: 1990
+        numberOfFloors:
+          type: integer
+          minimum: 1
+          nullable: true
+          example: 5
+        numberOfLifts:
+          type: integer
+          minimum: 1
+          example: 2
+
+    Transport:
+      type: string
+      enum:
+        - FEW
+        - LITTLE
+        - NORMAL
+
+    AgencyNotFoundAnswer:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-10-25T00:00:00Z"
+        error:
+          type: string
+          example: "Не найдено"
+        path:
+          type: string
+          example: "/flats/{id}"
+        details:
+          type: string
+          example: "Квартиры с таким id не существует"
+
+
