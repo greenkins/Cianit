@@ -7,4 +7,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-.iml
+*.iml
+# Gradle files
+.gradle/
+*/build
+*.bat
