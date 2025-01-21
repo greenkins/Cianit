@@ -142,7 +142,7 @@ public class FlatServiceImpl implements FlatService {
      */
     public void fillWithTestData(int dataSize) {
         flats.clear(); // Clear existing data if any
-        for (int i = 1; i <= dataSize + 1; i++) {
+        for (int i = 1; i <= dataSize; i++) {
             flats.add(createTestFlat(i));
         }
     }
