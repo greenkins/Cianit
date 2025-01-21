@@ -11,50 +11,74 @@ import ru.greenkins.housing.model.Flat;
 import ru.greenkins.housing.model.House;
 import ru.greenkins.housing.model.Transport;
 import ru.greenkins.housing.repository.FlatPersistenceService;
+import ru.greenkins.housing.util.FlatServiceUtils;
 
 
 import java.io.StringWriter;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class FlatServiceImpl implements FlatService {
     private final List<Flat> flats = new CopyOnWriteArrayList<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(1);
+    private final AtomicInteger idGenerator;
     private final FlatPersistenceService persistenceService = new FlatPersistenceService();
 
     public FlatServiceImpl() {
         // Восстанавливаем коллекцию при старте
         // flats.addAll(persistenceService.loadCollectionFromDatabase());
-        this.fillWithTestData();
+        this.fillWithTestData(100);
+        this.idGenerator = new AtomicInteger(this.flats.size());
     }
 
-    // Add a new flat
+    // Добавление новой квартиры
     public boolean addFlat(Flat flat) {
+        flat.setId(idGenerator.getAndIncrement());
+        flat.setCreationDate(LocalDate.now());
         flats.add(flat);
         return true;
     }
 
-    // Get all flats
+    // Получить все квартиры в коллекции
     public List<Flat> getAllFlats() {
         return Collections.unmodifiableList(flats);
     }
 
-    // Get a flat by ID
+    // Получение всех квартир с фильтрацией, сортировкой и пагинацией
+    public List<Flat> getFlats(int page, int size, String sort, String filter) throws IllegalArgumentException {
+        // Применяем фильтры
+        List<Flat> filteredFlats = this.flats;
+        if (!filter.isEmpty())
+            filteredFlats = this.applyFilter(filter);
+        // Сортируем
+        if (sort != null && !sort.isEmpty())
+            FlatServiceUtils.applySorting(filteredFlats, sort);
+        // Пагинация
+        int total = filteredFlats.size();
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, total);
+        if (fromIndex >= total) {
+            return Collections.emptyList();
+        }
+        return filteredFlats.subList(fromIndex, toIndex);
+    }
+
+    // Получение квартиры по ID
     public Optional<Flat> getFlatById(int id) {
         return flats.stream()
                 .filter(flat -> flat.getId() == id)
                 .findFirst();
     }
 
-    // Update a flat by ID
+    // Обновление квартиры по ID
     public boolean updateFlat(int id, Flat updatedFlat) {
         for (int i = 0; i < flats.size(); i++) {
             if (flats.get(i).getId() == id) {
+                updatedFlat.setId(id);
+                updatedFlat.setCreationDate(flats.get(i).getCreationDate());
                 flats.set(i, updatedFlat);
                 return true;
             }
@@ -62,18 +86,63 @@ public class FlatServiceImpl implements FlatService {
         return false;
     }
 
+    // Удаление квартиры по ID
     public boolean deleteFlat(int id) {
-        return false;
+        return flats.removeIf(flat -> flat.getId() == id);
     }
 
-    // TODO test samples
+    // Удаление квартир с указанным статусом "new"
+    public boolean deleteAnyFlatWithNewStatus(boolean isNew) {
+        return flats.removeIf(flat -> Objects.equals(flat.getIsNew(), isNew));
+    }
 
+    // Удаление всех квартир по имени дома
+    public boolean deleteFlatsByHouseName(String houseName) {
+        return flats.removeIf(flat -> flat.getHouse() != null && houseName.equals(flat.getHouse().getName()));
+    }
+
+    // Получение всех значений перечисления Transport
+    public List<String> getTransportValues() {
+        return Arrays.stream(Transport.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
+    }
+
+    // ------------- Filtration -------------------
+    // Применение фильтрации
+    private List<Flat> applyFilter(String filter) throws IllegalArgumentException {
+        if (filter == null || filter.isEmpty()) {
+            return new ArrayList<>(flats);
+        }
+        // Пример фильтрации: area>50,name~Kia
+        return flats.stream()
+                .filter(flat -> {
+                    boolean matches = true;
+                    for (String condition : filter.split(",")) {
+                        String[] parts = condition.split("[~><=]");
+                        if (parts.length == 2) {
+                            String field = parts[0];
+                            String value = parts[1];
+                            matches &= FlatServiceUtils.matchesFilter(flat, field, value, condition);
+                        } else throw new IllegalArgumentException("Invalid filter: " + filter); // TODO: проверить
+                    }
+                    return matches;
+                })
+                .collect(Collectors.toList());
+    }
+
+    // Вспомогательные геттеры
+    public int getFlatsCount() {
+        return flats.size();
+    }
+
+    // ------------- Test Samples -----------------
     /**
      * Fills the flat collection with test data.
      */
-    public void fillWithTestData() {
+    public void fillWithTestData(int dataSize) {
         flats.clear(); // Clear existing data if any
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= dataSize + 1; i++) {
             flats.add(createTestFlat(i));
         }
     }
