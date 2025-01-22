@@ -4,10 +4,13 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import lombok.Getter;
-import ru.greenkins.housing.api.converters.FlatsResponseWrapperToXmlConverter;
+import ru.greenkins.housing.api.converters.XmlConverter;
+import ru.greenkins.housing.api.requests.FlatCreateRequest;
+import ru.greenkins.housing.api.requests.FlatCreateResponse;
 import ru.greenkins.housing.model.Flat;
-import ru.greenkins.housing.model.FlatsResponseWrapper;
+import ru.greenkins.housing.api.requests.FlatsResponseWrapper;
 import ru.greenkins.housing.service.FlatService;
+import ru.greenkins.housing.util.RequestValidators;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +22,7 @@ public class FlatController {
     @Inject
     private FlatService flatService;
     @Inject
-    private FlatsResponseWrapperToXmlConverter flatsResponseWrapperToXmlConverter;
+    private XmlConverter xmlConverter;
 
     @GET
     @Produces("application/xml")
@@ -41,7 +44,7 @@ public class FlatController {
         // Оборачиваем в ответный объект
         FlatsResponseWrapper wrapper = new FlatsResponseWrapper(totalPages, size, page, flats);
         // Конвертируем в XML
-        Optional<String> responseXml = flatsResponseWrapperToXmlConverter.convertToXml(wrapper);
+        Optional<String> responseXml = xmlConverter.convertResponseWrapperToXml(wrapper);
 
         if (responseXml.isPresent()) {
             return Response.ok(responseXml.get()).build();
@@ -53,7 +56,55 @@ public class FlatController {
         // IllegalStatement and Exception exceptions are caught by Mappers in /api/errors
     }
 
+    @POST
+    @Consumes("application/xml")
+    @Produces("application/xml")
+    public Response postFlat(String content) {
+        System.out.println("Получен запрос на создание квартиры");
 
+        // Десериализация строки XML в объект FlatCreateRequest
+        // Используем XmlConverter для преобразования XML в объект FlatCreateRequest
+        Optional<FlatCreateRequest> requestOptional = xmlConverter.convertXmlToFlatCreateRequest(content);
 
+        // Проверка валидности входных данных
+        if (requestOptional.isEmpty())
+            throw new IllegalArgumentException();
+        FlatCreateRequest request = requestOptional.get();
 
+        // Проверка валидности входных данных
+        RequestValidators.validateFlatCreateRequest(request);
+
+        // Создание и сохранение объекта Flat через сервис
+        Flat newFlat = new Flat(
+                0,
+                request.getName(),
+                request.getCoordinates(),
+                null, // Дата создания устанавливается в сервисе
+                request.getArea(),
+                request.getNumberOfRooms(),
+                request.getLivingSpace(),
+                request.getIsNew(),
+                request.getTransport(),
+                request.getHouse()
+        );
+
+        // Добавление квартиры через сервис
+        boolean added = flatService.addFlat(newFlat);
+        if (!added) {
+            throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+
+        // Формируем успешный ответ
+        FlatCreateResponse response = new FlatCreateResponse(newFlat.getId(), newFlat.getCreationDate());
+        Optional<String> responseXml = xmlConverter.convertFlatCreateResponseToXml(response);
+
+        if (responseXml.isPresent()) {
+            return Response.status(Response.Status.CREATED)
+                    .entity(responseXml.get())
+                    .build();
+        } else {
+            throw new ServerErrorException("Ошибка конвертации ответа", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+
+    }
 }

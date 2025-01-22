@@ -36,6 +36,8 @@ public class FlatServiceImpl implements FlatService {
 
     // Добавление новой квартиры
     public boolean addFlat(Flat flat) {
+        if (flat.getHouse().getYear() > java.time.LocalDate.now().getYear())
+            return false;
         flat.setId(idGenerator.getAndIncrement());
         flat.setCreationDate(LocalDate.now());
         flats.add(flat);

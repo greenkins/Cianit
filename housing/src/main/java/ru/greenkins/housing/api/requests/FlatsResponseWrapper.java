@@ -1,4 +1,4 @@
-package ru.greenkins.housing.model;
+package ru.greenkins.housing.api.requests;
 
 
 import jakarta.xml.bind.annotation.*;
@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.greenkins.housing.model.Flat;
 
 import java.util.List;
 
@@ -27,6 +28,4 @@ public class FlatsResponseWrapper {
 
     @XmlElement(name = "Flat")
     private List<Flat> flats;
-
-
 }
