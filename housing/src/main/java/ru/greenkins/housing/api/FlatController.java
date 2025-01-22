@@ -107,4 +107,42 @@ public class FlatController {
         }
 
     }
+
+    @GET
+    @Path("/{id}")
+    @Produces("application/xml")
+    public Response getFlatById(@PathParam("id") String id) { // TODO: complete request
+        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes("application/xml")
+    @Produces("application/xml")
+    public Response updateFlatById(@PathParam("id") String id, String flatUpdateRequest) { // TODO: complete request
+        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Produces("application/xml")
+    public Response deleteFlatById(@PathParam("id") String id) { // TODO: complete request
+        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    @DELETE
+    @Path("/any-with-new/{new}")
+    @Produces("application/xml")
+    public Response deleteFlatByNewStatus(@PathParam("new") boolean isNew) { // TODO: complete request
+        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    @DELETE
+    @Path("/house/{houseName}")
+    @Produces("application/xml")
+    public Response deleteFlatsByHouseName(@PathParam("houseName") String houseName) { // TODO: complete request
+        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+
 }
