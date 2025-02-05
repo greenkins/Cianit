@@ -52,8 +52,7 @@ public class FlatServiceUtils {
                         (transport.equals(Transport.LITTLE.toString()) && flat.getTransport() == Transport.LITTLE) ||
                         (transport.equals(Transport.NORMAL.toString()) && flat.getTransport() == Transport.NORMAL));
             case "house.name":
-                String houseName = value.toUpperCase(Locale.ENGLISH);
-                return flat.getHouse().getName().equals(houseName);
+                return flat.getHouse().getName().equals(value);
             case "house.year":
                 long houseYear = Long.parseLong(value);
                 if (condition.contains(">")) return flat.getHouse().getYear() > houseYear;

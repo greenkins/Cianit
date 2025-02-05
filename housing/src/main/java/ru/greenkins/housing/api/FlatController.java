@@ -2,13 +2,16 @@ package ru.greenkins.housing.api;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import lombok.Getter;
 import ru.greenkins.housing.api.converters.XmlConverter;
 import ru.greenkins.housing.api.errors.BadRequestExceptionMapper;
 import ru.greenkins.housing.api.errors.NotFoundFlatExceptionMapper;
 import ru.greenkins.housing.api.errors.NotFoundExceptionMapper;
+import ru.greenkins.housing.api.errors.ServerErrorExceptionMapper;
 import ru.greenkins.housing.api.requests.FlatCreateRequest;
 import ru.greenkins.housing.api.requests.FlatCreateResponse;
 import ru.greenkins.housing.model.Flat;
@@ -27,6 +30,8 @@ public class FlatController {
     private FlatService flatService;
     @Inject
     private XmlConverter xmlConverter;
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     @Produces("application/xml")
@@ -43,8 +48,7 @@ public class FlatController {
         List<Flat> flats = flatService.getFlats(page, size, sort, filter);
         System.out.println("Результат запроса: " + flats.size() + " квартир (" + flats + ')');
         // Общая информация о коллекции
-        int totalElements = flatService.getFlatsCount();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int totalPages = (int) Math.ceil((double) flats.size() / size);
         // Оборачиваем в ответный объект
         FlatsResponseWrapper wrapper = new FlatsResponseWrapper(totalPages, size, page, flats);
         // Конвертируем в XML
@@ -114,17 +118,17 @@ public class FlatController {
     @Path("/{id}")
     @Produces("application/xml")
     public Response getFlatById(@PathParam("id") String id) {
-        int flatId = 0;
+        int flatId;
         try {
             flatId = Integer.parseInt(id); // Пытаемся преобразовать строку в число
         } catch (NumberFormatException e) {
-           return BadRequestExceptionMapper.getResponse("Неверный запрос", "/flats/" + id);
+           return BadRequestExceptionMapper.getResponse("Неверный запрос", uriInfo.getPath());
         }
 
         Optional<Flat> flatOptional = flatService.getFlatById(flatId);
         Flat flat = flatOptional.orElse(null);
         if (flat == null) {
-            return NotFoundFlatExceptionMapper.getResponse(422, "Не найдено", "/flats/" + id, "Квартиры с таким id не существует");
+            return NotFoundFlatExceptionMapper.getResponse(422, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
         }
         try{
             String flatResponseXml = xmlConverter.convertFlatToXml(flat).orElse("");
@@ -142,11 +146,11 @@ public class FlatController {
     @Produces("application/xml")
     public Response updateFlatById(@PathParam("id") String id, String content) {
         System.out.println("Получен запрос на обновление квартиры");
-        int flatId = 0;
+        int flatId;
         try {
             flatId = Integer.parseInt(id); // Пытаемся преобразовать строку в число
         } catch (NumberFormatException e) {
-            return BadRequestExceptionMapper.getResponse(400, "Неверный запрос", "/flats/" + id);
+            return BadRequestExceptionMapper.getResponse(400, "Неверный запрос", uriInfo.getPath());
         }
         // Десериализация строки XML в объект FlatCreateRequest (аналогично методу POST)
         // Используем XmlConverter для преобразования XML в объект FlatCreateRequest
@@ -179,7 +183,7 @@ public class FlatController {
                     .type(MediaType.APPLICATION_XML)
                     .build();
         } else if (!updated && addedFlat.isEmpty()) {
-            return NotFoundExceptionMapper.getResponse(404, "Не найдено", "/flats/" + id, "Квартиры с таким id не существует");
+            return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
         } else if (!updated) { // and addedFlat.Present()
             return BadRequestExceptionMapper.getResponse(422, "Неверный запрос", "/flats" + id);
         }
@@ -189,22 +193,60 @@ public class FlatController {
     @DELETE
     @Path("/{id}")
     @Produces("application/xml")
-    public Response deleteFlatById(@PathParam("id") String id) { // TODO: complete request
-        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    public Response deleteFlatById(@PathParam("id") String id) {
+        System.out.println("Получен запрос на удаление квартиры " + id);
+        int flatId;
+        try {
+            flatId = Integer.parseInt(id); // Пытаемся преобразовать строку в число
+        } catch (NumberFormatException e) {
+            return BadRequestExceptionMapper.getResponse(400, "Неверный запрос", uriInfo.getPath());
+        }
+        if (flatService.getFlatById(flatId).isEmpty())
+            return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
+        if (flatService.deleteFlat(flatId)){
+            return Response.status(Response.Status.NO_CONTENT.getStatusCode()).build(); // OK 204
+        }
+        return BadRequestExceptionMapper.getResponse(422, "Неверный запрос", uriInfo.getPath());
     }
 
     @DELETE
     @Path("/any-with-new/{new}")
     @Produces("application/xml")
-    public Response deleteFlatByNewStatus(@PathParam("new") boolean isNew) { // TODO: complete request
-        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    public Response deleteFlatByNewStatus(@PathParam("new") boolean isNew) {
+        System.out.println("Получен запрос на удаление квартиры, где isNew: " + isNew);
+        String filter = isNew ?  "isNew=true" : "isNew=false";
+        List<Flat> flats = flatService.getFlats(1, 1, null, filter);
+        if (flats.isEmpty())
+            return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
+        if (flatService.deleteFlat(flats.get(0).getId())){
+            System.out.println("Удалена квартира с id: " + flats.get(0).getId());
+            return Response.status(Response.Status.NO_CONTENT.getStatusCode()).build(); // OK 204
+        }
+        return BadRequestExceptionMapper.getResponse(422, "Неверный запрос", uriInfo.getPath());
     }
 
     @DELETE
     @Path("/house/{houseName}")
     @Produces("application/xml")
     public Response deleteFlatsByHouseName(@PathParam("houseName") String houseName) { // TODO: complete request
-        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+        System.out.println("Получен запрос на удаление квартир, где House.name: " + houseName);
+        String filter = "house.name=" + houseName;
+        List<Flat> flats = flatService.getFlats(1, flatService.getFlatsCount(), null, filter);
+        if (flats.isEmpty())
+            return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
+        boolean allDeleted = true;
+        for (Flat flat : flats) {
+            boolean deleted = flatService.deleteFlat(flat.getId());
+            if (!deleted) {
+                allDeleted = false;
+                System.err.println("Ошибка удаления квартиры с ID: " + flat.getId());
+            }
+        }
+        if (allDeleted){
+            System.out.println(flats.size() + " квартир с houseName: " + houseName + " удалено");
+            return Response.status(Response.Status.NO_CONTENT.getStatusCode()).build(); // OK 204
+        }
+        return ServerErrorExceptionMapper.getResponse(500, "Внутренняя ошибка сервера", uriInfo.getPath());
     }
 
 
