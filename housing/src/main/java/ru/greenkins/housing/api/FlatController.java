@@ -2,9 +2,13 @@ package ru.greenkins.housing.api;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import ru.greenkins.housing.api.converters.XmlConverter;
+import ru.greenkins.housing.api.errors.BadRequestExceptionMapper;
+import ru.greenkins.housing.api.errors.NotFoundFlatExceptionMapper;
+import ru.greenkins.housing.api.errors.NotFoundExceptionMapper;
 import ru.greenkins.housing.api.requests.FlatCreateRequest;
 import ru.greenkins.housing.api.requests.FlatCreateResponse;
 import ru.greenkins.housing.model.Flat;
@@ -49,9 +53,7 @@ public class FlatController {
         if (responseXml.isPresent()) {
             return Response.ok(responseXml.get()).build();
         } else {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("<error>Unable to produce XML</error>")
-                    .build();
+            throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
         }
         // IllegalStatement and Exception exceptions are caught by Mappers in /api/errors
     }
@@ -111,16 +113,77 @@ public class FlatController {
     @GET
     @Path("/{id}")
     @Produces("application/xml")
-    public Response getFlatById(@PathParam("id") String id) { // TODO: complete request
-        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    public Response getFlatById(@PathParam("id") String id) {
+        int flatId = 0;
+        try {
+            flatId = Integer.parseInt(id); // Пытаемся преобразовать строку в число
+        } catch (NumberFormatException e) {
+           return BadRequestExceptionMapper.getResponse("Неверный запрос", "/flats/" + id);
+        }
+
+        Optional<Flat> flatOptional = flatService.getFlatById(flatId);
+        Flat flat = flatOptional.orElse(null);
+        if (flat == null) {
+            return NotFoundFlatExceptionMapper.getResponse(422, "Не найдено", "/flats/" + id, "Квартиры с таким id не существует");
+        }
+        try{
+            String flatResponseXml = xmlConverter.convertFlatToXml(flat).orElse("");
+            if (flatResponseXml.isEmpty())
+                throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
+            return Response.status(Response.Status.FOUND).entity(flatResponseXml).build();
+        } catch (Exception e) {
+            throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PUT
     @Path("/{id}")
     @Consumes("application/xml")
     @Produces("application/xml")
-    public Response updateFlatById(@PathParam("id") String id, String flatUpdateRequest) { // TODO: complete request
-        throw new ServerErrorException("Not implemented", Response.Status.INTERNAL_SERVER_ERROR);
+    public Response updateFlatById(@PathParam("id") String id, String content) {
+        System.out.println("Получен запрос на обновление квартиры");
+        int flatId = 0;
+        try {
+            flatId = Integer.parseInt(id); // Пытаемся преобразовать строку в число
+        } catch (NumberFormatException e) {
+            return BadRequestExceptionMapper.getResponse(400, "Неверный запрос", "/flats/" + id);
+        }
+        // Десериализация строки XML в объект FlatCreateRequest (аналогично методу POST)
+        // Используем XmlConverter для преобразования XML в объект FlatCreateRequest
+        Optional<FlatCreateRequest> requestOptional = xmlConverter.convertXmlToFlatCreateRequest(content);
+        // Проверка валидности входных данных
+        if (requestOptional.isEmpty())
+            throw new IllegalArgumentException();
+        FlatCreateRequest request = requestOptional.get();
+        // Проверка валидности входных данных
+        RequestValidators.validateFlatCreateRequest(request);
+        // Создание и сохранение объекта Flat через сервис
+        Flat newFlat = new Flat(
+                flatId,
+                request.getName(),
+                request.getCoordinates(),
+                null, // Дата создания устанавливается в сервисе
+                request.getArea(),
+                request.getNumberOfRooms(),
+                request.getLivingSpace(),
+                request.getIsNew(),
+                request.getTransport(),
+                request.getHouse()
+        );
+        // Добавление квартиры через сервис
+        boolean updated = flatService.updateFlat(flatId, newFlat);
+        Optional<Flat> addedFlat = flatService.getFlatById(flatId);
+        if (updated && addedFlat.isPresent()) {
+            return Response.status(Response.Status.OK)
+                    .entity(addedFlat.get())
+                    .type(MediaType.APPLICATION_XML)
+                    .build();
+        } else if (!updated && addedFlat.isEmpty()) {
+            return NotFoundExceptionMapper.getResponse(404, "Не найдено", "/flats/" + id, "Квартиры с таким id не существует");
+        } else if (!updated) { // and addedFlat.Present()
+            return BadRequestExceptionMapper.getResponse(422, "Неверный запрос", "/flats" + id);
+        }
+        throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
     }
 
     @DELETE

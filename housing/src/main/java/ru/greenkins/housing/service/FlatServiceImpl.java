@@ -10,7 +10,6 @@ import ru.greenkins.housing.model.Coordinates;
 import ru.greenkins.housing.model.Flat;
 import ru.greenkins.housing.model.House;
 import ru.greenkins.housing.model.Transport;
-import ru.greenkins.housing.repository.FlatPersistenceService;
 import ru.greenkins.housing.util.FlatServiceUtils;
 
 
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 public class FlatServiceImpl implements FlatService {
     private final List<Flat> flats = new CopyOnWriteArrayList<>();
     private final AtomicInteger idGenerator;
-    private final FlatPersistenceService persistenceService = new FlatPersistenceService();
 
     public FlatServiceImpl() {
         // Восстанавливаем коллекцию при старте

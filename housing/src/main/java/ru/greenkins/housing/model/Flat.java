@@ -45,12 +45,12 @@ public class Flat implements Serializable {
 
     @XmlElement
     private int id;                 //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    @XmlElement @NotNull @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private java.time.LocalDate creationDate;   //Поле не может быть null, Значение этого поля должно генерироваться автоматически
     @XmlElement @NotNull
     private String name;            //Поле не может быть null, Строка не может быть пустой
     @XmlElement @NotNull
     private Coordinates coordinates;    //Поле не может быть null
-    @XmlElement @NotNull @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private java.time.LocalDate creationDate;   //Поле не может быть null, Значение этого поля должно генерироваться автоматически
     @XmlElement @NotNull @Positive
     private double area;            //Значение поля должно быть больше 0
     @XmlElement @NotNull @Positive

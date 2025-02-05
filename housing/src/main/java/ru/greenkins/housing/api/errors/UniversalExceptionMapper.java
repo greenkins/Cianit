@@ -17,16 +17,8 @@ public class UniversalExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
-        System.out.println("Внутренняя ошибка сервера: " + Arrays.toString(exception.getStackTrace()) + exception.getMessage());
+        System.out.println("Не удалось обработать запрос: " + Arrays.toString(exception.getStackTrace()) + exception.getMessage());
         String path = uriInfo.getPath(); // Получаем текущий путь
-        BadRequestAnswer errorResponse = new BadRequestAnswer(
-                500,
-                "Внутренняя ошибка сервера.",
-                path
-        );
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(errorResponse)
-                .type(MediaType.APPLICATION_XML)
-                .build();
+        return BadRequestExceptionMapper.getResponse("Неверный запрос", path);
     }
 }

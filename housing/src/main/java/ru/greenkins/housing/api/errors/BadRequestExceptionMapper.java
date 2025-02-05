@@ -18,7 +18,6 @@ public class BadRequestExceptionMapper implements ExceptionMapper<IllegalArgumen
     public Response toResponse(IllegalArgumentException exception) {
         String path = uriInfo.getPath(); // Получаем текущий путь
         BadRequestAnswer errorResponse = new BadRequestAnswer(
-                400,
                 "Неверный запрос",
                 path
         );
@@ -26,5 +25,20 @@ public class BadRequestExceptionMapper implements ExceptionMapper<IllegalArgumen
                 .entity(errorResponse)
                 .type(MediaType.APPLICATION_XML)
                 .build();
+    }
+
+    public static Response getResponse(int code, String error, String path) {
+        BadRequestAnswer errorResponse = new BadRequestAnswer(
+                error,
+                path
+        );
+        return Response.status(code)
+                .entity(errorResponse)
+                .type(MediaType.APPLICATION_XML)
+                .build();
+    }
+
+    public static Response getResponse(String error, String path) {
+        return getResponse(Response.Status.BAD_REQUEST.getStatusCode(), error, path);
     }
 }

@@ -7,7 +7,8 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.Builder;
-import ru.greenkins.housing.model.FlatsResponseWrapper;
+import ru.greenkins.housing.api.requests.FlatsResponseWrapper;
+
 
 import java.io.StringWriter;
 import java.util.Optional;
