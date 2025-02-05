@@ -21,7 +21,7 @@ class FlatServiceImplTest {
     @BeforeEach
     void setUp() {
         flatService = new FlatServiceImpl();
-        flatService.fillWithTestData();
+        flatService.fillWithTestData(10);
     }
 
     @Test
@@ -72,7 +72,7 @@ class FlatServiceImplTest {
                 Transport.FEW,
                 new House("UpdatedHouse", 2025, 15L, 3)
         );
-        flatService.fillWithTestData();
+        flatService.fillWithTestData(10);
         assertTrue(flatService.updateFlat(1, updatedFlat));
 
         Optional<Flat> flat = flatService.getFlatById(1);
