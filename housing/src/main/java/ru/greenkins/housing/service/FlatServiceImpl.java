@@ -1,11 +1,7 @@
 package ru.greenkins.housing.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Singleton;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
 
-import lombok.NoArgsConstructor;
 import ru.greenkins.housing.model.Coordinates;
 import ru.greenkins.housing.model.Flat;
 import ru.greenkins.housing.model.House;
@@ -13,7 +9,6 @@ import ru.greenkins.housing.model.Transport;
 import ru.greenkins.housing.util.FlatServiceUtils;
 
 
-import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -164,7 +159,7 @@ public class FlatServiceImpl implements FlatService {
                 30 + id,   // Example living space
                 id % 2 == 0, // Alternate isNew between true and false
                 Transport.FEW, // Example transport
-                new House("TestHouse" + id, 2000 + id, 5L + id, id % 3 + 1) // Example house data
+                new House("TestHouse" + id % 10, 2000 + id, 5L + id, id % 3 + 1) // Example house data
         );
     }
 }
