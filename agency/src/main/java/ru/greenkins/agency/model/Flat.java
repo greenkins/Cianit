@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.greenkins.agency.util.LocalDateAdapter;
 
-
 import java.io.Serializable;
 import java.time.LocalDate;
 

@@ -96,13 +96,23 @@ public class FlatServiceUtils {
 
     // Получение компаратора для конкретного поля
     public static Comparator<Flat> getFieldComparator(String fieldName) throws IllegalArgumentException {
+        fieldName = fieldName.toLowerCase();
         switch (fieldName) {
+            case "id":
+                return Comparator.comparing(Flat::getId);
             case "name":
                 return Comparator.comparing(Flat::getName);
             case "area":
                 return Comparator.comparingDouble(Flat::getArea);
-            case "numberOfRooms":
+            case "numberofrooms":
                 return Comparator.comparingLong(Flat::getNumberOfRooms);
+            case "livingspace":
+                return Comparator.comparingLong(Flat::getLivingSpace);
+            case "transport":
+                return Comparator.comparing(Flat::getTransport);
+            case "isnew":
+            case "new":
+                return Comparator.comparing(Flat::getIsNew);
             default:
                 throw new IllegalArgumentException("Invalid field: " + fieldName);
         }

@@ -9,7 +9,6 @@ import jakarta.ws.rs.core.*;
 import lombok.Getter;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import ru.greenkins.agency.api.converters.FlatConverter;
 import ru.greenkins.agency.api.errors.BadRequestExceptionMapper;
 import ru.greenkins.agency.api.errors.NotFoundExceptionMapper;
