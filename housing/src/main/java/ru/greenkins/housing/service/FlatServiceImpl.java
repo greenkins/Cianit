@@ -154,11 +154,11 @@ public class FlatServiceImpl implements FlatService {
                 "TestFlat" + id,
                 new Coordinates(10 * id, 20 * id),
                 LocalDate.now(),
-                50.0 + id, // Example area
-                2L + id,   // Example number of rooms
-                30 + id,   // Example living space
+                (id % 10 + 1) * 10, // Example area
+                id % 3 + 1L,   // Example number of rooms
+                (id % 10 + 1) * 5,   // Example living space
                 id % 2 == 0, // Alternate isNew between true and false
-                Transport.FEW, // Example transport
+                (id % 3 == 0) ? Transport.FEW : (id % 3 == 1) ? Transport.LITTLE : Transport.NORMAL, // Example transport
                 new House("TestHouse" + id % 10, 2000 + id, 5L + id, id % 3 + 1) // Example house data
         );
     }

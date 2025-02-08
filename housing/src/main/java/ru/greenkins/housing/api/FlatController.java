@@ -42,15 +42,15 @@ public class FlatController {
             @QueryParam("filter") @DefaultValue("") String filter) {
         System.out.println("Запрос на получение данных о квартирах:" + filter + "\nВсего квартир: " + flatService.getFlatsCount());
         // Предварительная обработка параметров
-        if (page < 1 || size < 1 || size > 100)
+        if (page < 1 || size < 1 || size > 1000)
             throw new IllegalArgumentException("Параметры заданы некорректно");
         // Получаем отфильтрованные и отсортированные квартиры с пагинацией
         List<Flat> flats = flatService.getFlats(page, size, sort, filter);
         System.out.println("Результат запроса: " + flats.size() + " квартир (" + flats + ')');
         // Общая информация о коллекции
-        int totalPages = (int) Math.ceil((double) flats.size() / size);
+        int totalPages = (int) Math.ceil((double) flatService.getFlatsCount() / size);
         // Оборачиваем в ответный объект
-        FlatsResponseWrapper wrapper = new FlatsResponseWrapper(totalPages, size, page, flats);
+        FlatsResponseWrapper wrapper = new FlatsResponseWrapper(totalPages, flats.size(), page, flats);
         // Конвертируем в XML
         Optional<String> responseXml = xmlConverter.convertResponseWrapperToXml(wrapper);
 
@@ -105,7 +105,7 @@ public class FlatController {
         Optional<String> responseXml = xmlConverter.convertFlatCreateResponseToXml(response);
 
         if (responseXml.isPresent()) {
-            return Response.status(Response.Status.CREATED)
+            return Response.status(Response.Status.OK)
                     .entity(responseXml.get())
                     .build();
         } else {
@@ -134,7 +134,7 @@ public class FlatController {
             String flatResponseXml = xmlConverter.convertFlatToXml(flat).orElse("");
             if (flatResponseXml.isEmpty())
                 throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
-            return Response.status(Response.Status.FOUND).entity(flatResponseXml).build();
+            return Response.status(Response.Status.OK).entity(flatResponseXml).build();
         } catch (Exception e) {
             throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
         }

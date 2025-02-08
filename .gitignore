@@ -12,3 +12,5 @@
 .gradle/
 */build
 *.bat
+/agency/gradle/wrapper/
+/housing/gradle/wrapper/
