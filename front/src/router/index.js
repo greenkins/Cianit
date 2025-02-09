@@ -1,18 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
-import FlatsList from "@/views/FlatsList.vue";
+import FlatSearch from "@/components/search/FlatSearch.vue";
 
 const routes = [
-    {
-        path: "/",
-        name: "FlatsList",
-        component: FlatsList,
-    },
-    {
-        path: "/flat/:id",
-        name: "FlatDetails",
-        // Вы можете позже создать компонент для деталей квартиры
-        component: () => import("@/views/FlatDetails.vue"),
-    },
+    { path: "/", component: FlatSearch },
 ];
 
 const router = createRouter({
