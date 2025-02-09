@@ -1,38 +1,54 @@
-<script setup>
-import { ref } from "vue";
+<script>
+export default {
+  data() {
+    return {
+      filters: {
+        areaMin: "",
+        areaMax: "",
+        numberOfRooms: "",
+        isNew: "",
+      },
+    };
+  },
+  methods: {
+    applyFilters() {
+      const filterParams = Object.entries(this.filters)
+          .filter(([_, value]) => value !== "")
+          .map(([key, value]) => `${key}:${encodeURIComponent(value)}`) // Кодируем только значения
+          .join(";");
 
-const emit = defineEmits(["filter-change"]);
-const filters = ref({
-  minArea: "",
-  maxArea: "",
-  minRooms: "",
-  maxRooms: "",
-  isNew: "",
-});
-
-const applyFilters = () => {
-  emit("filter-change", { ...filters.value });
+      this.$emit("updateFilters", filterParams);
+    },
+  },
 };
 </script>
 
 <template>
-  <div class="bg-gray-100 p-4 rounded-lg mb-4">
-    <h3 class="font-bold text-lg">Фильтры</h3>
-    <div class="grid grid-cols-2 gap-4">
-      <input v-model="filters.minArea" type="number" placeholder="Мин. площадь" class="p-2 border rounded" />
-      <input v-model="filters.maxArea" type="number" placeholder="Макс. площадь" class="p-2 border rounded" />
-      <input v-model="filters.minRooms" type="number" placeholder="Мин. комнаты" class="p-2 border rounded" />
-      <input v-model="filters.maxRooms" type="number" placeholder="Макс. комнаты" class="p-2 border rounded" />
-      <select v-model="filters.isNew" class="p-2 border rounded">
-        <option value="">Любая</option>
-        <option value="true">Новая</option>
-        <option value="false">Старая</option>
-      </select>
-    </div>
-    <button @click="applyFilters" class="mt-2 bg-blue-500 text-white p-2 rounded">Применить</button>
+  <div class="filter-section pb-3 ">
+    <label>Мин. площадь:<input v-model="filters.areaMin" type="number" placeholder="м²"/></label>
+    <label>Макс. площадь:<input v-model="filters.areaMax" type="number" placeholder="м²"/></label>
+    <label>Кол-во комнат:<select v-model="filters.numberOfRooms">
+      <option value="">Любое</option>
+      <option v-for="n in 5" :key="n" :value="n">{{n}}</option>
+    </select></label>
+
+    <label>Новостройка:<select v-model="filters.isNew">
+      <option value="">Любое</option>
+      <option value="true">Да</option>
+      <option value="false">Нет</option>
+    </select>
+    </label>
+
+    <button @click="applyFilters">Применить</button>
   </div>
 </template>
 
 <style scoped>
-
+.filter-section {
+  display: flex;
+  gap: 10px;
+}
+input {
+  margin: 0 10px;
+}
 </style>

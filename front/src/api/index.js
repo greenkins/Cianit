@@ -24,6 +24,7 @@ const parseXmlResponse = (xml) => {
 
 export const getFlats = async (params) => {
     try {
+        if (params.filter) {params.filter = decodeURIComponent(params.filter);}
         const response = await apiHousing.get("/flats", { params });
         return parseXmlResponse(response.data);
     } catch (error) {
