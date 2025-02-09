@@ -4,7 +4,7 @@ import FilterSection from "@/components/search/FilterSection.vue";
 import SortSection from "@/components/search/SortSection.vue";
 import FlatList from "@/components/search/FlatList.vue";
 import Pagination from "@/components/search/Pagination.vue";
-import { apiHousing } from "@/api";
+import { getFlats } from "@/api";
 
 const flats = ref([]);
 const totalPages = ref(1);
@@ -14,11 +14,10 @@ const sort = ref("");
 
 const fetchFlats = async (page = 1) => {
   try {
-    const params = { ...filters.value, sort: sort.value, page };
-    const response = await apiHousing.get("/flats", { params });
-    flats.value = response.data.Flat;
-    totalPages.value = response.data.totalPages;
-    currPage.value = response.data.currPage;
+    const response = await getFlats({ ...filters.value, sort: sort.value, page });
+    flats.value = Array.isArray(response.Flat) ? response.Flat : [response.Flat]; // Делаем массив, даже если 1 объект
+    totalPages.value = Number(response.totalPages._text);
+    currPage.value = Number(response.currPage._text);
   } catch (error) {
     console.error("Ошибка загрузки:", error);
   }
