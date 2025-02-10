@@ -45,10 +45,20 @@ public class FlatController {
         if (page < 1 || size < 1 || size > 1000)
             throw new IllegalArgumentException("Параметры заданы некорректно");
         // Получаем отфильтрованные и отсортированные квартиры с пагинацией
-        List<Flat> flats = flatService.getFlats(page, size, sort, filter);
+        List<Flat> flats = flatService.getFlats(sort, filter);
+        // Пагинация
+        int total = flats.size();
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, total);
+        if (fromIndex >= total) {
+            flats.clear();
+        }
+        flats = flats.subList(fromIndex, toIndex);
+
         System.out.println("Результат запроса: " + flats.size() + " квартир (" + flats + ')');
         // Общая информация о коллекции
-        int totalPages = (int) Math.ceil((double) flatService.getFlatsCount() / size);
+        int totalPages = (int) Math.ceil((double) total / size);
+        totalPages = totalPages > 0 ? totalPages : 1;
         // Оборачиваем в ответный объект
         FlatsResponseWrapper wrapper = new FlatsResponseWrapper(totalPages, flats.size(), page, flats);
         // Конвертируем в XML
@@ -57,7 +67,7 @@ public class FlatController {
         if (responseXml.isPresent()) {
             return Response.ok(responseXml.get()).build();
         } else {
-            throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new ServerErrorException("Внутренняя ошибка сервиса", Response.Status.INTERNAL_SERVER_ERROR);
         }
         // IllegalStatement and Exception exceptions are caught by Mappers in /api/errors
     }
@@ -215,7 +225,7 @@ public class FlatController {
     public Response deleteFlatByNewStatus(@PathParam("new") boolean isNew) {
         System.out.println("Получен запрос на удаление квартиры, где isNew: " + isNew);
         String filter = isNew ?  "isNew=true" : "isNew=false";
-        List<Flat> flats = flatService.getFlats(1, 1, null, filter);
+        List<Flat> flats = flatService.getFlats( null, filter);
         if (flats.isEmpty())
             return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
         if (flatService.deleteFlat(flats.get(0).getId())){
@@ -231,7 +241,7 @@ public class FlatController {
     public Response deleteFlatsByHouseName(@PathParam("houseName") String houseName) { // TODO: complete request
         System.out.println("Получен запрос на удаление квартир, где House.name: " + houseName);
         String filter = "house.name=" + houseName;
-        List<Flat> flats = flatService.getFlats(1, flatService.getFlatsCount(), null, filter);
+        List<Flat> flats = flatService.getFlats(null, filter);
         if (flats.isEmpty())
             return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
         boolean allDeleted = true;

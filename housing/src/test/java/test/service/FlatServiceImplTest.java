@@ -112,7 +112,7 @@ class FlatServiceImplTest {
 
     @Test
     void testGetFlatsWithFilterAndPagination() {
-        List<Flat> flats = flatService.getFlats(1, 5, "-name", "area>52");
+        List<Flat> flats = flatService.getFlats("-name", "area>52");
         assertEquals(5, flats.size());
         assertTrue(flats.get(0).getArea() > 52);
     }
