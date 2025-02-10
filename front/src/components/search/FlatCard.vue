@@ -1,11 +1,17 @@
 <script setup>
 defineProps(["flat"]);
+import { useRouter } from "vue-router";
 
+const router = useRouter();
+
+const goToFlatDetail = (flat) => {
+  router.push(`/flat/${getValue(flat.id)}`);
+};
 const getValue = (field) => (field && field._text ? field._text : "Нет данных");
 </script>
 
 <template>
-  <div class="border rounded-lg p-4 shadow hover:shadow-lg cursor-pointer">
+  <div @click="goToFlatDetail(flat)" class="border rounded-lg p-4 shadow hover:shadow-lg cursor-pointer">
     <h3 class="text-lg font-semibold">{{ getValue(flat.name) }}</h3>
     <p>Площадь: {{ getValue(flat.area) }} м²</p>
     <p>Комнат: {{ getValue(flat.numberOfRooms) }}</p>

@@ -22,7 +22,46 @@ const parseXmlResponse = (xml) => {
     return responseData;
 };
 
+// AGENCY
+export const getCheapestFlat = async (id1, id2) => {
+    return apiAgency.get(`/get-cheapest/${id1}/${id2}`)
+        .then(response => response.data)
+        .catch(error => {
+            const toast = useToast();
+            // Парсим XML-ответ
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(error.response.data, 'text/xml');
+            // Извлекаем сообщение об ошибке
+            const errorCode = error.code;
+            const errorMessage = xmlDoc.querySelector('error')?.textContent || 'Произошла ошибка';
+            const details = xmlDoc.querySelector('details')?.textContent || '';
+            // Показываем уведомление
+            toast.error(`${errorCode.valueOf()} ${errorMessage}${details ? `: ${details}` : ''}`, {
+                timeout: 3000,
+            });
+        });
+};
 
+export const getOrderedByTimeToMetro = async (byTransport, desc) => {
+    return apiAgency.get(`/get-ordered-by-time-to-metro/${byTransport}/${desc}`)
+        .then(response => response.data)
+        .catch(error => {
+            const toast = useToast();
+            // Парсим XML-ответ
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(error.response.data, 'text/xml');
+            // Извлекаем сообщение об ошибке
+            const errorCode = error.code;
+            const errorMessage = xmlDoc.querySelector('error')?.textContent || 'Произошла ошибка';
+            const details = xmlDoc.querySelector('details')?.textContent || '';
+            // Показываем уведомление
+            toast.error(`${errorCode.valueOf()} ${errorMessage}${details ? `: ${details}` : ''}`, {
+                timeout: 3000,
+            });
+        });
+};
+
+// HOUSING
 export const getFlats = async (params) => {
     try {
         if (params.filter) {params.filter = decodeURIComponent(params.filter);}
@@ -35,7 +74,7 @@ export const getFlats = async (params) => {
 };
 
 export const getFlatById = async (id) => {
-    const toast = useToast();
+    useToast();
     try {
         const response = await apiHousing.get(`/flats/${id}`);
         return response.data;
@@ -98,6 +137,66 @@ export const deleteFlatsByNewStatus = async (isNew) => {
         console.error("Ошибка при удалении квартир по статусу new:", error);
         throw new Error("Не удалось удалить квартиры с таким статусом new");
     }
+};
+
+/**
+ * Создать новую квартиру (POST)
+ * @param {Object} flatData - Данные квартиры
+ */
+export const createFlat = async (flatData) => {
+    const xmlData = convertToXML(flatData);
+    try {
+        await apiHousing.post(`/flats`, xmlData, {
+            headers: { "Content-Type": "application/xml" },
+        });
+    } catch (error) {
+        console.error("Ошибка при создании квартиры:", error);
+        throw new Error("Не удалось добавить квартиру");
+    }
+};
+
+/**
+ * Обновить существующую квартиру (PUT)
+ * @param {number} id - ID квартиры
+ * @param {Object} flatData - Данные квартиры
+ */
+export const updateFlat = async (id, flatData) => {
+    const xmlData = convertToXML(flatData);
+    try {
+        await apiHousing.put(`/flats/${id}`, xmlData, {
+            headers: { "Content-Type": "application/xml" },
+        });
+    } catch (error) {
+        console.error("Ошибка при обновлении квартиры:", error);
+        throw new Error("Не удалось обновить квартиру");
+    }
+};
+
+/**
+ * Конвертирует объект в XML-формат
+ * @param {Object} flatData - Объект квартиры
+ * @returns {string} - XML-строка
+ */
+const convertToXML = (flatData) => {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<FlatCreateRequest>
+  <name>${flatData.name}</name>
+  <coordinates>
+    <x>${flatData.coordinates.x}</x>
+    <y>${flatData.coordinates.y}</y>
+  </coordinates>
+  <area>${flatData.area}</area>
+  <numberOfRooms>${flatData.numberOfRooms}</numberOfRooms>
+  <livingSpace>${flatData.livingSpace}</livingSpace>
+  <new>${flatData.isNew}</new>
+  <transport>${flatData.transport}</transport>
+  <house>
+    <name>${flatData.house.name}</name>
+    <year>${flatData.house.year}</year>
+    <numberOfFloors>${flatData.house.numberOfFloors}</numberOfFloors>
+    <numberOfLifts>${flatData.house.numberOfLifts}</numberOfLifts>
+  </house>
+</FlatCreateRequest>`;
 };
 
 export { apiHousing, apiAgency };

@@ -17,13 +17,16 @@
           <RouterLink to="/" class="nav-link">Главная</RouterLink>
         </div>
         <div class="nav-item">
-          <RouterLink to="/about" class="nav-link">О нас</RouterLink>
-        </div>
-        <div class="nav-item">
-          <RouterLink to="/contacts" class="nav-link">Контакты</RouterLink>
+          <a href="https://github.com/greenkins" class="nav-link">О нас</a>
         </div>
         <div class="nav-item">
           <RouterLink to="/add" class="nav-link">Добавить квартиру</RouterLink>
+        </div>
+        <div class="nav-item">
+          <RouterLink class="nav-link" to="/compare">Сравнение квартир</RouterLink>
+        </div>
+        <div class="nav-item">
+          <RouterLink class="nav-link" to="/access">Доступность</RouterLink>
         </div>
       </nav>
     </div>
