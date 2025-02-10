@@ -61,4 +61,43 @@ export async function getTransportEnums() {
     return response.data.values;
 }
 
+/**
+ * Удалить квартиру по ID
+ * @param {number} id - ID квартиры
+ */
+export const deleteFlat = async (id) => {
+    try {
+        await apiHousing.delete(`/flats/${id}`);
+    } catch (error) {
+        console.error("Ошибка при удалении квартиры:", error);
+        throw new Error("Не удалось удалить квартиру");
+    }
+};
+
+/**
+ * Удалить все квартиры в доме
+ * @param {string} houseName - Название дома
+ */
+export const deleteFlatsByHouse = async (houseName) => {
+    try {
+        await apiHousing.delete(`/flats/house/${encodeURIComponent(houseName)}`);
+    } catch (error) {
+        console.error("Ошибка при удалении квартир в доме:", error);
+        throw new Error("Не удалось удалить квартиры в доме");
+    }
+};
+
+/**
+ * Удалить все квартиры с указанным значением new
+ * @param {boolean} isNew - Статус новостройки (true/false)
+ */
+export const deleteFlatsByNewStatus = async (isNew) => {
+    try {
+        await apiHousing.delete(`/flats/any-with-new/${isNew}`);
+    } catch (error) {
+        console.error("Ошибка при удалении квартир по статусу new:", error);
+        throw new Error("Не удалось удалить квартиры с таким статусом new");
+    }
+};
+
 export { apiHousing, apiAgency };

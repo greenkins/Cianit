@@ -22,6 +22,9 @@
         <div class="nav-item">
           <RouterLink to="/contacts" class="nav-link">Контакты</RouterLink>
         </div>
+        <div class="nav-item">
+          <RouterLink to="/add" class="nav-link">Добавить квартиру</RouterLink>
+        </div>
       </nav>
     </div>
   </header>
