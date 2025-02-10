@@ -5,6 +5,7 @@ import SortSection from "@/components/search/SortSection.vue";
 import FlatList from "@/components/search/FlatList.vue";
 import Pagination from "@/components/search/Pagination.vue";
 import { getFlats } from "@/api";
+import { useToast } from 'vue-toastification';
 
 const flats = ref([]);
 const totalPages = ref(1);
@@ -30,6 +31,18 @@ const fetchFlats = async (page = 1) => {
     totalPages.value = Number(response.totalPages._text);
     currPage.value = Number(response.currPage._text);
   } catch (error) {
+    const toast = useToast();
+    // Парсим XML-ответ
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(error.response.data, 'text/xml');
+    // Извлекаем сообщение об ошибке
+    const errorCode = error.code;
+    const errorMessage = xmlDoc.querySelector('error')?.textContent || 'Произошла ошибка';
+    const details = xmlDoc.querySelector('details')?.textContent || '';
+    // Показываем уведомление
+    toast.error(`${errorCode}' '${errorMessage}${details ? `: ${details}` : ''}`, {
+      timeout: 3000,
+    });
     console.error("Ошибка загрузки:", error);
   }
 };

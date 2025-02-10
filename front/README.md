@@ -47,7 +47,12 @@ cianit-frontend/
 
 ### 1️⃣ Установка зависимостей
 ```sh
-npm install
+npm install axios tailwind vue-toastification@next
+```
+
+### 1️⃣ Сборка проекта
+```sh
+npm install 
 ```
 
 ### 2️⃣ Запуск проекта (режим разработки)
