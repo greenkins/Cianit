@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  # Сервис для сборки и деплоя "agency"
+  agency-builder:
+    image: gradle:latest
+    container_name: agency-builder
+    working_dir: /app/agency
+    volumes:
+      - ./agency:/app
+    command: gradle build
+    networks:
+      - app-network
+
+  # Сервис для сборки и деплоя "housing"
+  housing-builder:
+    image: gradle:latest
+    container_name: housing-builder
+    working_dir: /app/housing
+    volumes:
+      - ./housing:/app
+    command: gradle build
+    networks:
+      - app-network
+
+  # Сервис WildFly для деплоя WAR файлов
+  wildfly:
+    image: jboss/wildfly:latest
+    container_name: housing-wildfly
+    environment:
+      - JAVA_OPTS=-Djboss.management.http.port=9990
+    ports:
+      - "8081:8080" # Порт 8081 для доступа к WildFly через браузер или Postman
+      - "9990:9990" # Админ-панель WildFly
+    volumes:
+      - ./wildfly/deployments:/opt/jboss/wildfly/standalone/deployments:rw
+      - ./wildfly/standalone.xml:/opt/jboss/wildfly/standalone/configuration/standalone.xml:ro
+    depends_on:
+      - agency-builder
+      - housing-builder
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
