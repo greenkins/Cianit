@@ -33,4 +33,9 @@ export const getFlats = async (params) => {
     }
 };
 
+export async function getTransportEnums() {
+    const response = await apiHousing.get("/enums/transport")
+    return response.data.values;
+}
+
 export { apiHousing, apiAgency };

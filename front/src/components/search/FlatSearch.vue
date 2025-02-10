@@ -15,12 +15,18 @@ const flatsOnPage = ref(15);
 
 const fetchFlats = async (page = 1) => {
   try {
+    let filterString = (typeof filters.value === "string" && filters.value.trim() !== "") ? filters.value : "";
     const response = await getFlats({
-      filter: encodeURIComponent(filters.value), // Добавляем безопасное кодирование
+      filter: filterString,
       sort: sort.value,
       page: page,
       size: flatsOnPage.value
-    });flats.value = Array.isArray(response.Flat) ? response.Flat : [response.Flat]; // Делаем массив, даже если 1 объект
+    });
+
+    // Убедитесь, что response.Flat существует и является массивом
+    flats.value = Array.isArray(response.Flat) ? response.Flat : [];
+
+    // Получаем значения totalPages и currPage
     totalPages.value = Number(response.totalPages._text);
     currPage.value = Number(response.currPage._text);
   } catch (error) {
