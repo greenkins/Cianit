@@ -61,6 +61,19 @@ public class FlatServiceImpl implements FlatService {
         return filteredFlats.subList(fromIndex, toIndex);
     }
 
+    // Получение всех квартир с фильтрацией, сортировкой и пагинацией
+    public List<Flat> getFlats(String sort, String filter) throws IllegalArgumentException {
+        // Применяем фильтры
+        List<Flat> filteredFlats = this.flats;
+        if (!filter.isEmpty())
+            filteredFlats = this.applyFilter(filter);
+        // Сортируем
+        if (sort != null && !sort.isEmpty())
+            FlatServiceUtils.applySorting(filteredFlats, sort);
+        // Пагинация теперь на стороне контроллеров
+        return filteredFlats;
+    }
+
     // Получение квартиры по ID
     public Optional<Flat> getFlatById(int id) {
         return flats.stream()
@@ -105,7 +118,7 @@ public class FlatServiceImpl implements FlatService {
 
     // ------------- Filtration -------------------
     // Применение фильтрации
-    private List<Flat> applyFilter(String filter) throws IllegalArgumentException {
+    private List<Flat> applyFilter(String filter) {
         if (filter == null || filter.isEmpty()) {
             return new ArrayList<>(flats);
         }
@@ -113,18 +126,23 @@ public class FlatServiceImpl implements FlatService {
         return flats.stream()
                 .filter(flat -> {
                     boolean matches = true;
-                    for (String condition : filter.split(",")) {
-                        String[] parts = condition.split("[~><=]");
-                        if (parts.length == 2) {
-                            String field = parts[0];
-                            String value = parts[1];
-                            matches &= FlatServiceUtils.matchesFilter(flat, field, value, condition);
-                        } else throw new IllegalArgumentException("Invalid filter: " + filter); // TODO: проверить
+                    for (String condition : filter.split(";")) { // Поддерживаем фильтры через ";"
+                        String[] parts = condition.split("(?<=[=~><:])|(?=[=~><:])", 2); // Разделяем с сохранением операторов
+                        if (parts.length != 2) {
+                            System.err.println("⚠ Ошибка в фильтре: " + condition); // Просто логируем, не ломаем сервис
+                            throw new IllegalArgumentException();
+                        }
+                        String field = parts[0].trim();
+                        String operatorValue = parts[1].trim();
+                        operatorValue = operatorValue.replace("<=", "≤");
+                        operatorValue = operatorValue.replace(">=", "≥");
+                        matches &= FlatServiceUtils.matchesFilter(flat, field, operatorValue);
                     }
                     return matches;
                 })
                 .collect(Collectors.toList());
     }
+
 
     // Вспомогательные геттеры
     public int getFlatsCount() {

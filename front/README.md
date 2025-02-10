@@ -1,29 +1,155 @@
-# front
+# 🏠 Cianit Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Фронтенд-приложение для проекта **CianIT**, написанное на **Vue 3 + Vite**.
+Подключается к сервисам **Housing** и **Agency**, предоставляя удобный интерфейс для работы с недвижимостью.
 
-## Recommended IDE Setup
+## 🚀 Функциональность
+- Отображение списка квартир (модуль **Housing**)
+- Подключение к API через **Axios**
+- Маршрутизация с **Vue Router**
+- Модульная архитектура для масштабируемости
+- Конфигурация API через **.env**
+- Использование **TailwindCSS** для стилизации
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 📌 Стек технологий
+- **Vue 3** + Vite
+- **Vue Router** (маршрутизация)
+- **Axios** (работа с API)
+- **TailwindCSS** (стилизация)
+- **Pinia** (если потребуется глобальное хранилище)
 
-## Customize configuration
+---
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+## 📂 Структура проекта
+```
+cianit-frontend/
+│── public/               # Статика
+│── src/
+│   ├── api/              # Логика запросов к API
+│   ├── components/       # Общие компоненты (кнопки, карточки и т.д.)
+│   ├── modules/          # Отдельные модули (housing, agency)
+│   │   ├── housing/      # Модуль Housing
+│   │   ├── agency/       # Модуль Agency
+│   ├── layouts/          # Базовые шаблоны (Header, Footer)
+│   ├── router/           # Настройка маршрутов
+│   ├── store/            # Глобальное состояние (если нужно)
+│   ├── views/            # Страницы (вьюшки)
+│   ├── App.vue           # Корневой компонент
+│   ├── main.js           # Точка входа
+│── .env                  # Конфигурация API
+│── vite.config.js        # Конфигурация Vite
+│── package.json          # Зависимости проекта
 ```
 
-### Compile and Hot-Reload for Development
+---
 
+## 🔧 Установка и запуск
+
+### 1️⃣ Установка зависимостей
+```sh
+npm install axios tailwind vue-toastification@next
+```
+
+### 1️⃣ Сборка проекта
+```sh
+npm install 
+```
+
+### 2️⃣ Запуск проекта (режим разработки)
 ```sh
 npm run dev
 ```
+Проект откроется по адресу: **http://localhost:5173**
 
-### Compile and Minify for Production
-
+### 3️⃣ Сборка проекта (продакшн)
 ```sh
 npm run build
 ```
+
+### 4️⃣ Запуск продакшн-сборки
+```sh
+npm run preview
+```
+
+---
+
+## 🌐 Конфигурация API
+
+API-адреса задаются в файле **.env**:
+```
+VITE_HOUSING_API_URL=http://localhost:8081/housing-1.0-SNAPSHOT/api/cian/housing
+VITE_AGENCY_API_URL=http://localhost:8082/agency-1.0-SNAPSHOT/api/cian/agency
+```
+
+Если нужно сменить сервер — просто обновите **`.env`** и перезапустите проект.
+
+---
+
+## 📌 Маршрутизация
+
+Файл **`router/index.js`** содержит маршруты:
+```js
+import { createRouter, createWebHistory } from "vue-router";
+import HousingList from "@/modules/housing/HousingList.vue";
+
+const routes = [
+  { path: "/", component: HousingList },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
+
+export default router;
+```
+
+---
+
+## 🏠 Базовый шаблон (Layout)
+Файл **`layouts/BaseLayout.vue`**:
+```vue
+<template>
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-blue-500 p-4 text-white text-center">CianIT</header>
+    <main class="flex-grow p-4">
+      <slot></slot>
+    </main>
+    <footer class="bg-gray-800 text-white p-4 text-center">
+      &copy; 2025 CianIT
+    </footer>
+  </div>
+</template>
+```
+
+Используется в **`App.vue`**:
+```vue
+<script setup>
+import BaseLayout from "@/layouts/BaseLayout.vue";
+import { RouterView } from "vue-router";
+</script>
+
+<template>
+  <BaseLayout>
+    <RouterView />
+  </BaseLayout>
+</template>
+```
+
+---
+
+## 🔥
+Формат, поддерживаемый бэкендом:
+Каждое условие фильтра записывается в формате поле оператор значение.
+Разделитель условий: ; (точка с запятой).
+Операторы:
+= — точное соответствие (например, numberOfRooms=2).
+~ — поиск подстроки (например, name~Flat).
+> < >= <= — сравнения (например, area>20).
+: — диапазон (например, area:20-50).
+, — множественный выбор (например, transport=FEW,NORMAL).
+
+
+🚀 Готово! Теперь можно легко расширять и добавлять новые модули. 🎉
+
+

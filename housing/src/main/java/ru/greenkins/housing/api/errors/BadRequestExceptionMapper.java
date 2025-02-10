@@ -21,7 +21,7 @@ public class BadRequestExceptionMapper implements ExceptionMapper<IllegalArgumen
                 "Неверный запрос",
                 path
         );
-        return Response.status(Response.Status.BAD_REQUEST)
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode())
                 .entity(errorResponse)
                 .type(MediaType.APPLICATION_XML)
                 .build();
