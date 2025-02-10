@@ -67,7 +67,7 @@ public class FlatController {
         if (responseXml.isPresent()) {
             return Response.ok(responseXml.get()).build();
         } else {
-            throw new ServerErrorException("Внутренняя ошибка сервиса", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new ServerErrorException("Внутренняя ошибка сервиса", 500);
         }
         // IllegalStatement and Exception exceptions are caught by Mappers in /api/errors
     }
@@ -107,7 +107,7 @@ public class FlatController {
         // Добавление квартиры через сервис
         boolean added = flatService.addFlat(newFlat);
         if (!added) {
-            throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new ServerErrorException("Не удалось сохранить квартиру", 500);
         }
 
         // Формируем успешный ответ
@@ -119,7 +119,7 @@ public class FlatController {
                     .entity(responseXml.get())
                     .build();
         } else {
-            throw new ServerErrorException("Ошибка конвертации ответа", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new ServerErrorException("Ошибка конвертации ответа", 500);
         }
 
     }
@@ -143,10 +143,10 @@ public class FlatController {
         try{
             String flatResponseXml = xmlConverter.convertFlatToXml(flat).orElse("");
             if (flatResponseXml.isEmpty())
-                throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
+                throw new ServerErrorException("Внутренняя ошибка сервера", 500);
             return Response.status(Response.Status.OK).entity(flatResponseXml).build();
         } catch (Exception e) {
-            throw new ServerErrorException("Внутренняя ошибка сервера", Response.Status.INTERNAL_SERVER_ERROR);
+            throw new ServerErrorException("Внутренняя ошибка сервера", 500);
         }
     }
 
@@ -197,7 +197,7 @@ public class FlatController {
         } else if (!updated) { // and addedFlat.Present()
             return BadRequestExceptionMapper.getResponse(422, "Неверный запрос", "/flats" + id);
         }
-        throw new ServerErrorException("Не удалось сохранить квартиру", Response.Status.INTERNAL_SERVER_ERROR);
+        throw new ServerErrorException("Не удалось сохранить квартиру", 500);
     }
 
     @DELETE
