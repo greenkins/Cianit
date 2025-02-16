@@ -1,8 +1,6 @@
 package ru.greenkins.housingm.api.errors;
 
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @XmlRootElement(name = "NotFoundAnswer")
 @XmlType(propOrder = {"timestamp", "error", "path", "details"})
+@XmlAccessorType(XmlAccessType.FIELD)    // Автоматическая сериализация полей
 public class FlatNotFoundAnswer { // Модель 422ой ошибки
     private String timestamp;
     private String error;

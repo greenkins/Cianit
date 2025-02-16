@@ -22,22 +22,46 @@ ext {
 }
 
 dependencies {
-	// Spring
+	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-jersey'
 
-	// Housing
-	compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')
-	compileOnly('jakarta.ws.rs:jakarta.ws.rs-api:4.0.0') // Jax-RS
-	compileOnly('jakarta.servlet:jakarta.servlet-api:6.1.0')
-	compileOnly('org.projectlombok:lombok:1.18.36')
-	annotationProcessor('org.projectlombok:lombok:1.18.36')
-	testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2' //  JaxB
-	implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5' // Реализация JAXB (например, EclipseLink MOXy или другие)
-	implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final' // Validator
+	// Spring Cloud Consul
+	implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
+
+	// Jersey
+	implementation 'org.glassfish.jersey.ext:jersey-spring6' // Для интеграции с Spring Boot 3.x
+	implementation 'org.glassfish.jersey.media:jersey-media-jaxb' // Для работы с XML
+
+	// JAXB
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+	implementation 'org.glassfish.jaxb:jaxb-runtime'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Jakarta
+	compileOnly 'jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1' // Указана версия
+	compileOnly 'jakarta.ws.rs:jakarta.ws.rs-api:4.0.0'
+	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+	// Hibernate Validator
+	implementation 'org.hibernate.validator:hibernate-validator'
+
+	// Тестирование
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0" // Для Spring Boot 3.2.x и выше
+	}
 }
 
 tasks.named('test') {

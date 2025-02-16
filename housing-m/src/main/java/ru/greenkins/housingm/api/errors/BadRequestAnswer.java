@@ -1,6 +1,8 @@
 package ru.greenkins.housingm.api.errors;
 
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 import lombok.Getter;
@@ -15,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @XmlRootElement(name = "BadRequestAnswer")
 @XmlType(propOrder = {"timestamp", "error", "path"})
+@XmlAccessorType(XmlAccessType.FIELD)    // Автоматическая сериализация полей
 public class BadRequestAnswer { // Модель 400ой ошибки
     private String timestamp;
     private String error;

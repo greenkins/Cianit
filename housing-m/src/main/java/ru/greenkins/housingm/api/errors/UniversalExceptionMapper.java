@@ -5,10 +5,13 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
 import java.util.Arrays;
 
 @Provider
+@XmlAccessorType(XmlAccessType.FIELD)    // Автоматическая сериализация полей
 public class UniversalExceptionMapper implements ExceptionMapper<Exception> {
 
     @Context
