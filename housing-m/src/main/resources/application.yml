@@ -1,0 +1,27 @@
+---
+spring.application.name: housing-m
+spring.config.activate.on-profile: dev
+server.port: 8880  #for several instances
+
+spring.cloud.consul:         #tells about the Consul server details
+    host: localhost
+    port: 8500
+    discovery:
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        enabled: true
+        register: true
+
+---
+spring.application.name: housing-m
+spring.config.activate.on-profile: release
+server.port: 8882  #for several instances
+
+spring.cloud.consul:         #tells about the Consul server details
+    host: localhost
+    port: 8500
+    discovery:
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        enabled: true
+        register: true

@@ -14,3 +14,6 @@
 *.bat
 /agency/gradle/wrapper/
 /housing/gradle/wrapper/
+/agency-m/agency-m-ejb/gradle/
+/agency-m/agency-m-rest/gradle/
+/agency-m/gradle/

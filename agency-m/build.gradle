@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.greenkins'
+version = '1.0-SNAPSHOT'
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    dependencies {
+        implementation 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+
+        annotationProcessor('org.projectlombok:lombok:1.18.36')
+    }
+}
