@@ -3,7 +3,8 @@ package ru.greenkins.agencymrest.api.converters;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-import ru.greenkins.agencymrest.model.Flat;
+import ru.greenkins.agencymejb.model.Flat;
+
 
 import java.io.StringReader;
 

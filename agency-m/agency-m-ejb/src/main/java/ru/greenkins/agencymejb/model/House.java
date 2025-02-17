@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 
 
 @Setter
@@ -18,7 +19,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @XmlRootElement(name = "House")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class House {
+public class House implements Serializable {
     @XmlElement
     @Null
     private String name; //Поле может быть null

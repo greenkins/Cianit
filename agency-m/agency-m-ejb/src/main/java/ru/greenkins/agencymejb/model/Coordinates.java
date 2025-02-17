@@ -5,12 +5,14 @@ import jakarta.xml.bind.annotation.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 
 @Getter
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "Coordinates")
-public class Coordinates {
+public class Coordinates implements Serializable {
     @XmlElement @Max(256)
     private int x; //Максимальное значение поля: 256
 

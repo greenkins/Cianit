@@ -27,7 +27,7 @@ war {
 
 dependencies {
   // EJB
-  //implementation project(':agency-m/agency-m-ejb')
+  implementation project(':agency-m-ejb')
 
   // Old REST module
   compileOnly('jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0')

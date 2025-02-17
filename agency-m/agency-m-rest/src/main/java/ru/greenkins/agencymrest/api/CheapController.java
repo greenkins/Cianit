@@ -1,30 +1,35 @@
 package ru.greenkins.agencymrest.api;
 
 
+import jakarta.ejb.EJB;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.*;
-import lombok.Getter;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import ru.greenkins.agencymejb.model.Flat;
+import ru.greenkins.agencymejb.service.FlatComparisonService;
+import ru.greenkins.agencymejb.util.RealEstateAppraisal;
 import ru.greenkins.agencymrest.api.converters.FlatConverter;
 import ru.greenkins.agencymrest.api.errors.BadRequestExceptionMapper;
 import ru.greenkins.agencymrest.api.errors.NotFoundExceptionMapper;
 import ru.greenkins.agencymrest.api.errors.ServerErrorExceptionMapper;
-import ru.greenkins.agencymrest.model.Flat;
-import ru.greenkins.agencymrest.util.RealEstateAppraisal;
 
 import java.net.URI;
 
-@Getter
+
 @Path("/get-cheapest")
+@Produces(MediaType.APPLICATION_XML)
+@Consumes(MediaType.APPLICATION_XML)
 public class CheapController {
     @Context
     private UriInfo uriInfo;
     Config config = ConfigProvider.getConfig();
     private final String HOUSING_SERVICE_URL = config.getValue("housing.service.url", String.class); // URL из конфига
+    @EJB
+    private FlatComparisonService flatComparisonService;
 
     @GET
     @Path("/")
@@ -49,16 +54,17 @@ public class CheapController {
             flatId1 = Integer.parseInt(id1); // Пытаемся преобразовать строку в число
             flatId2 = Integer.parseInt(id2);
         } catch (NumberFormatException e) {
-            return BadRequestExceptionMapper.getResponse("Неверный запрос", uriInfo.getPath());
+        return BadRequestExceptionMapper.getResponse("Неверный запрос", uriInfo.getPath());
         }
         if (flatId1 < 0 || flatId2 < 0) {return BadRequestExceptionMapper.getResponse("Неверный запрос", uriInfo.getPath());}
         System.out.println("Запрос на сравнение квартир: " + uriInfo.getPath());
+
         try (Client client = ClientBuilder.newClient()) {
-            // Формируем базовый URL для первого сервиса
+// Формируем базовый URL для первого сервиса
             URI baseUri = URI.create(HOUSING_SERVICE_URL);
             WebTarget targetFlat1 = client.target(UriBuilder.fromUri(baseUri).path("/flats/" + flatId1));
             WebTarget targetFlat2 = client.target(UriBuilder.fromUri(baseUri).path("/flats/" + flatId2));
-            //Requesting
+//Requesting
             final Response responseFlat1 = targetFlat1.request().get();
             if (responseFlat1.getStatus() == 422)
                 return NotFoundExceptionMapper.getResponse(404, "Не найдено", uriInfo.getPath(), "Квартиры с таким id не существует");
@@ -76,11 +82,12 @@ public class CheapController {
             Flat flat2 = (responseFlat2.getStatus() == 200) ?
                     FlatConverter.parseFlatFromXml(flat2StringEntity) : null;
             int priceFlat2 = RealEstateAppraisal.appraise(flat2);
+            // SEE IT!
+            Flat cheapestFlat = flatComparisonService.getCheapest(flat1, flat2);
             // Agency Response
             return Response.status(Response.Status.OK).type(MediaType.APPLICATION_XML_TYPE).entity(
-                    (priceFlat1 < priceFlat2) ? flat1StringEntity : flat2StringEntity
+                    cheapestFlat
             ).build();
-
         } catch (ProcessingException e) {
             return ServerErrorExceptionMapper.getResponse(503, "Внутренняя ошибка сервера", uriInfo.getPath());
         } catch (Exception e) {
@@ -89,3 +96,4 @@ public class CheapController {
         }
     }
 }
+
